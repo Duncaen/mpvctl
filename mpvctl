@@ -21,6 +21,7 @@ EOFUSAGE
 
 cmd() {
 	cmd="$1"
+	args=""
 	shift
 	for a in "$@"; do
 		[ $(( idx=idx+1 )) -le "$#" ] && args+=", "
@@ -30,7 +31,7 @@ cmd() {
 		esac
 	done
 	printf '{ "command": ["%s"%s] }\n' "$cmd" "$args"
-	printf '{ "command": ["%s"%s] }\n' "$cmd" "$args" | socat - /tmp/mpvd
+	printf '{ "command": ["%s"%s] }\n' "$cmd" "$args" | $UNIX_SOCK_CMD
 }
 
 append() {
@@ -49,6 +50,28 @@ append() {
 
 : ${PROGNAME:="$0"}
 
+if [ -z "$UNIX_SOCK_CMD" ]; then
+	if [ -x $(command -v nc) ]; then
+		UNIX_SOCK_CMD="nc -U /tmp/mpvd"
+	elif [ -x $(command -v socat) ]; then
+		UNIX_SOCK_CMD="socat - /tmp/mpvd"
+	else
+		err "could not find netcat or socat"
+	fi
+fi
+
+if [ -z "$ALBUM_SEARCH_CMD" ]; then
+	if [ -x $(command -v beet) ]; then
+		ALBUM_SEARCH_CMD="beet ls -a -p"
+	fi
+fi
+
+if [ -z "$TRACK_SEARCH_CMD" ]; then
+	if [ -x $(command -v beet) ]; then
+		TRACK_SEARCH_CMD="beet ls -p"
+	fi
+fi
+
 if [ -t 0 ]; then
 	cmd="$1"
 	shift
@@ -59,8 +82,8 @@ if [ -t 0 ]; then
 		n|n[ext]*) cmd "playlist-next" ;;
 		p|p[rev]*) cmd "playlist-prev" ;;
 		add|append) append "$@" ;;
-		album) beet ls -a -p "$@" | append "append-play" ;;
-		track) beet ls -p "$@" | append "append-play" ;;
+		album) $ALBUM_SEARCH_CMD "$@" | append "append-play" ;;
+		track) $TRACK_SEARCH_CMD "$@" | append "append-play" ;;
 		*) usage && exit 1 ;;
 	esac
 else
