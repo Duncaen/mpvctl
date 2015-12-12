@@ -16,6 +16,9 @@ $PROGNAME <cmd> [ARGS...]
   add [...]	- add parameters to playlist
   album [...]	- play matching albums
   track [...]	- play matching tracks
+
+PIPE:
+  find ~/music/ -type f | $PROGNAME
 EOFUSAGE
 }
 
