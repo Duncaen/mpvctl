@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec mpv --idle=yes --no-terminal --force-window --input-unix-socket=/tmp/mpvd
