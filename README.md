@@ -20,3 +20,10 @@ COMMANDS:
 PIPE:
   find ~/music/ -type f | ./mpvctl
 ```
+
+## Installation
+
+```
+make
+make install
+```
