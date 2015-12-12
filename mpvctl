@@ -8,14 +8,14 @@ err() {
 usage() {
 	cat <<EOFUSAGE
 $PROGNAME <cmd>
-  play
-  pause
-  stop
-  next
-  prev
-  add
-  album
-  track
+  play		- start playing
+  pause		- pause current file
+  stop		- stop and clear playlist
+  next		- play next file
+  prev		- play previous file
+  add [...]	- add parameters to playlist
+  album [...]	- play matching albums
+  track [...]	- play matching tracks
 EOFUSAGE
 }
 
@@ -48,13 +48,40 @@ append() {
 	fi
 }
 
+search() {
+	type="$1"
+	shift
+	case "$type" in
+		album) $ALBUM_SEARCH_CMD "$@" ;;
+		track) $TRACK_SEARCH_CMD "$@" ;;
+	esac
+}
+
+cli() {
+	cmd="$1"
+	shift
+	case "$cmd" in
+		pa|pa[use]*) cmd "set_property" "pause" "true" ;;
+		p|p[lay]*) cmd "set_property" "pause" "false" ;;
+		s|s[top]*) cmd "stop" ;;
+		n|n[ext]*) cmd "playlist-next" ;;
+		p|p[rev]*) cmd "playlist-prev" ;;
+		add|append) append "$@" ;;
+		search) search "$@" ;;
+		album) search "album" "$@" | append "replace" ;;
+		track) search "track" "$@" | append "replace" ;;
+		*) usage && exit 1 ;;
+	esac
+}
+
 : ${PROGNAME:="$0"}
+: ${UNIX_SOCK_PATH:="/tmp/mpvd"}
 
 if [ -z "$UNIX_SOCK_CMD" ]; then
 	if [ -x $(command -v nc) ]; then
-		UNIX_SOCK_CMD="nc -U /tmp/mpvd"
+		UNIX_SOCK_CMD="nc -U ${UNIX_SOCK_PATH}"
 	elif [ -x $(command -v socat) ]; then
-		UNIX_SOCK_CMD="socat - /tmp/mpvd"
+		UNIX_SOCK_CMD="socat - ${UNIX_SOCK_PATH}"
 	else
 		err "could not find netcat or socat"
 	fi
@@ -72,20 +99,9 @@ if [ -z "$TRACK_SEARCH_CMD" ]; then
 	fi
 fi
 
+
 if [ -t 0 ]; then
-	cmd="$1"
-	shift
-	case "$cmd" in
-		pa|pa[use]*) cmd "set_property" "pause" "true" ;;
-		p|p[lay]*) cmd "set_property" "pause" "false" ;;
-		s|s[top]*) cmd "stop" ;;
-		n|n[ext]*) cmd "playlist-next" ;;
-		p|p[rev]*) cmd "playlist-prev" ;;
-		add|append) append "$@" ;;
-		album) $ALBUM_SEARCH_CMD "$@" | append "append-play" ;;
-		track) $TRACK_SEARCH_CMD "$@" | append "append-play" ;;
-		*) usage && exit 1 ;;
-	esac
+	cli "$@"
 else
 	append "append-play"
 fi
