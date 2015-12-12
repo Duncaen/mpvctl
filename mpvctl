@@ -7,7 +7,7 @@ err() {
 
 usage() {
 	cat <<EOFUSAGE
-$PROGNAME <cmd>
+$PROGNAME <cmd> [ARGS...]
   play		- start playing
   pause		- pause current file
   stop		- stop and clear playlist
