@@ -25,6 +25,7 @@ EOFUSAGE
 cmd() {
 	cmd="$1"
 	args=""
+	idx=0
 	shift
 	for a in "$@"; do
 		[ $(( idx=idx+1 )) -le "$#" ] && args+=", "
