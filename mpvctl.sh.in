@@ -72,7 +72,7 @@ cli() {
 		s|s[top]*) cmd "stop" ;;
 		n|n[ext]*) cmd "playlist-next" ;;
 		p|p[rev]*) cmd "playlist-prev" ;;
-		add|append) append "$@" ;;
+		add|append) append "append-play" "$@" ;;
 		search) search "$@" ;;
 		album) search "album" "$@" | append "replace" ;;
 		track) search "track" "$@" | append "replace" ;;
