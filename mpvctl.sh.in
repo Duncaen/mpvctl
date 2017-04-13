@@ -42,7 +42,7 @@ cmd() {
 
 append() {
 	opt="$1"
-	shift
+	[ -n "$opt" ] && shift
 	if [ -t 0 ]; then
 		for f in "$@"; do
 			cmd "loadfile" "${f}" "$opt"
@@ -65,7 +65,7 @@ search() {
 
 cli() {
 	cmd="$1"
-	shift
+	[ -n "$cmd" ] && shift
 	case "$cmd" in
 		pa|pa[use]*) cmd "set_property" "pause" "true" ;;
 		p|p[lay]*) cmd "set_property" "pause" "false" ;;
