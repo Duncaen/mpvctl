@@ -84,10 +84,10 @@ cli() {
 : ${UNIX_SOCK_PATH:="/tmp/mpvd"}
 
 if [ -z "$UNIX_SOCK_CMD" ]; then
-	if [ -x $(command -v nc) ]; then
-		UNIX_SOCK_CMD="nc -U ${UNIX_SOCK_PATH}"
-	elif [ -x $(command -v socat) ]; then
+	if [ -x $(command -v socat) ]; then
 		UNIX_SOCK_CMD="socat - ${UNIX_SOCK_PATH}"
+	elif [ -x $(command -v nc) ]; then
+		UNIX_SOCK_CMD="nc -U ${UNIX_SOCK_PATH}"
 	else
 		err "could not find netcat or socat"
 	fi
