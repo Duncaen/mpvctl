@@ -20,11 +20,13 @@ COMMANDS:
   shuffle	- shuffle the playlist
   prop [...]	- get properties
   add [...]	- add parameters to playlist
+  replace [...]	- replace playlist with parameters
   album [...]	- play matching albums
   track [...]	- play matching tracks
 
 PIPE:
   find ~/music/ -type f | $PROGNAME
+  find ~/music/ -type f | $PROGNAME replace
 EOFUSAGE
 }
 
@@ -81,6 +83,7 @@ cli() {
 		n|n[ext]*) cmd "playlist-next" >/dev/null ;;
 		p|p[rev]*) cmd "playlist-prev" >/dev/null ;;
 		add|append) append "append-play" "$@" ;;
+		rep|replace) append "replace" "$@" ;;
 		ls|list) list "$@" ;;
 		c|c[lear]*) cmd "playlist-clear" >/dev/null ;;
 		shuffle) cmd "playlist-shuffle" >/dev/null ;;
@@ -123,6 +126,9 @@ fi
 if [ -t 0 ]; then
 	cli "$@"
 else
-	append "append-play"
+	case "${opt:=$1}" in
+	append*|replace) shift; append "$opt" ;;
+	*) append "append-play" ;;
+	esac
 fi
 exit 0
