@@ -15,6 +15,10 @@ COMMANDS:
   stop		- stop and clear playlist
   next		- play next file
   prev		- play previous file
+  ls		- list the playlist
+  clear		- clear the playlist
+  shuffle	- shuffle the playlist
+  prop [...]	- get properties
   add [...]	- add parameters to playlist
   album [...]	- play matching albums
   track [...]	- play matching tracks
@@ -36,7 +40,6 @@ cmd() {
 			*) args="${args}\"${a}\""
 		esac
 	done
-	printf '{ "command": ["%s"%s] }\n' "$cmd" "$args"
 	printf '{ "command": ["%s"%s] }\n' "$cmd" "$args" | $UNIX_SOCK_CMD
 }
 
@@ -45,13 +48,17 @@ append() {
 	[ -n "$opt" ] && shift
 	if [ -t 0 ]; then
 		for f in "$@"; do
-			cmd "loadfile" "${f}" "$opt"
+			cmd "loadfile" "${f}" "$opt" >/dev/null
 		done
 	else
 		while read f; do
-			cmd "loadfile" "${f}" "$opt"
+			cmd "loadfile" "${f}" "$opt" >/dev/null
 		done
 	fi
+}
+
+list() {
+	cmd "get_property" "playlist" | "${JQ_CMD}" -M .data[].filename
 }
 
 search() {
@@ -67,12 +74,16 @@ cli() {
 	cmd="$1"
 	[ -n "$cmd" ] && shift
 	case "$cmd" in
-		pa|pa[use]*) cmd "set_property" "pause" "true" ;;
-		p|p[lay]*) cmd "set_property" "pause" "false" ;;
-		s|s[top]*) cmd "stop" ;;
-		n|n[ext]*) cmd "playlist-next" ;;
-		p|p[rev]*) cmd "playlist-prev" ;;
+		prop) for p; do cmd "get_property" "$p"; done ;;
+		pa|pa[use]*) cmd "set_property" "pause" "true" >/dev/null ;;
+		p|p[lay]*) cmd "set_property" "pause" "false" >/dev/null ;;
+		s|s[top]*) cmd "stop" >/dev/null ;;
+		n|n[ext]*) cmd "playlist-next" >/dev/null ;;
+		p|p[rev]*) cmd "playlist-prev" >/dev/null ;;
 		add|append) append "append-play" "$@" ;;
+		ls|list) list "$@" ;;
+		c|c[lear]*) cmd "playlist-clear" >/dev/null ;;
+		shuffle) cmd "playlist-shuffle" >/dev/null ;;
 		search) search "$@" ;;
 		album) search "album" "$@" | append "replace" ;;
 		track) search "track" "$@" | append "replace" ;;
@@ -82,6 +93,9 @@ cli() {
 
 : ${PROGNAME:="$0"}
 : ${UNIX_SOCK_PATH:="/tmp/mpvd"}
+
+: ${JQ_CMD:=$(command -v jq)}
+[ -z "$JQ_CMD" ] && err "could not find jq"
 
 if [ -z "$UNIX_SOCK_CMD" ]; then
 	if [ -x $(command -v socat) ]; then
