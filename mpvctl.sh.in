@@ -30,10 +30,10 @@ cmd() {
 	idx=0
 	shift
 	for a in "$@"; do
-		[ $(( idx=idx+1 )) -le "$#" ] && args+=", "
+		[ $(( idx=idx+1 )) -le "$#" ] && args="$args, "
 		case "${a}" in
-			true|false|[0-9]*) args+="${a}" ;;
-			*) args+="\"${a}\""
+			true|false|[0-9]*) args="${args}${a}" ;;
+			*) args="${args}\"${a}\""
 		esac
 	done
 	printf '{ "command": ["%s"%s] }\n' "$cmd" "$args"
